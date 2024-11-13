@@ -8,7 +8,7 @@ jobs:
       - name: git-sync
         uses: wei/git-sync@v3
         with:
-          source_repo: "git@github.com:Cyfarw9dd/TallNeck-private.git"
+          source_repo: "Cyfarw9dd/TallNeck-private"
           source_branch: "master"
           destination_repo: "git@github.com:Cyfarw9dd/TallNeck.git"
           destination_branch: "master"
