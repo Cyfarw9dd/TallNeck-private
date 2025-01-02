@@ -48,7 +48,9 @@
     "esp_littlefs.h": "c",
     "future": "c",
     "system_error": "c",
-    "regex": "c"
+    "regex": "c",
+    "trsp_type.h": "c",
+    "trsp_update.h": "c"
   },
   "idf.port": "/dev/ttyACM0"
 }

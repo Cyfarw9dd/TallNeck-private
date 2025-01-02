@@ -1,4 +1,6 @@
 build/
+.devcontainer/
+managed_components/*
 sdkconfig
 sdkconfig.old
 .DS_Store

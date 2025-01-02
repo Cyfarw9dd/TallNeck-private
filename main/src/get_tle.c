@@ -1,6 +1,6 @@
 #include "get_tle.h"
 
-#define TAG         "get_tle"
+#define TAG "get_tle"
 
 void sntp_netif_sync_time_init(void)
 {

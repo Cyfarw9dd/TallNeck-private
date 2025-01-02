@@ -12,6 +12,9 @@ idf_component_register(SRCS "src/main.c"
                             "src/solar.c"
                             "src/uart.c"
                             "src/lvgl_display.c"
+                            "src/nxjson.c"
+                            "src/trsp_update.c"
+                            "src/hash_table.c"
                     INCLUDE_DIRS "include")
 
 include_directories(${CMAKE_SOURCE_DIR}/build/config)
