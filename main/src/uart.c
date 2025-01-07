@@ -12,6 +12,8 @@
 #define ECHO_UART_BAUD_RATE     (115200)
 #define ECHO_TASK_STACK_SIZE    (2048)
 
+const char test_str[] = "hello world";
+
 void echo_task(void *pvParameter)
 {
     BaseType_t sat_queue_txstatus;
@@ -35,18 +37,23 @@ void echo_task(void *pvParameter)
 #endif
 
     // 安装UART驱动程序
-    ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, 0, 0, NULL, intr_alloc_flags));
+    ESP_ERROR_CHECK(uart_driver_install(ECHO_UART_PORT_NUM, BUF_SIZE * 2, BUF_SIZE * 2, 0, NULL, intr_alloc_flags));
     // 参数配置和引脚设置
     ESP_ERROR_CHECK(uart_param_config(ECHO_UART_PORT_NUM, &uart_config));
     ESP_ERROR_CHECK(uart_set_pin(ECHO_UART_PORT_NUM, ECHO_TEST_TXD, ECHO_TEST_RXD, ECHO_TEST_RTS, ECHO_TEST_CTS));
 
     // 为接受到的数据创建临时缓冲区
     char *data = (char *) malloc(BUF_SIZE);
-
-    while (1) {
-        // 从串口中读取数据
-        int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1), 20 / portTICK_PERIOD_MS);
-        if (len) {
+    memset(data, 0, BUF_SIZE);
+    while (1) 
+    {
+        // NOTE: 串口bug排查
+        uart_write_bytes(ECHO_UART_PORT_NUM, (const char*)test_str, strlen(test_str));
+        int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1), 100 / portTICK_PERIOD_MS);
+        if (len) 
+        {
+            data[len] = '\0';  // 确保字符串结束
+            ESP_LOGI(TAG, "Received %d bytes: '%s'", len, data);
             if (strstr(data, "reconnect") != NULL)
             {
                 // xTaskNotify(tle_download_handler, UPDATE_TLE, eSetValueWithOverwrite);
@@ -225,7 +232,7 @@ void echo_task(void *pvParameter)
             else if (strstr(data, "recon") != NULL)
             {
                 ESP_LOGI(TAG, "Initiating reconnection process");
-                // 1. Disconnect from current network
+
                 queue_message disconnect_msg;
                 disconnect_msg.code = WM_ORDER_DISCONNECT_STA;
                 wifimg_queue_txstatus = xQueueSend(wifi_manager_queue, &disconnect_msg, 0);
@@ -234,7 +241,6 @@ void echo_task(void *pvParameter)
                     ESP_LOGE(TAG, "Wifi manager disconnect message send failed.\n");
                 }
                 
-                // 2. Start AP mode
                 queue_message start_ap_msg;
                 start_ap_msg.code = WM_ORDER_START_AP;
                 wifimg_queue_txstatus = xQueueSend(wifi_manager_queue, &start_ap_msg, 0);
@@ -256,6 +262,10 @@ void echo_task(void *pvParameter)
             {
                 ESP_LOGW(TAG, "Try enter the 'help' for further information.\n");
             }
+        }
+        else
+        {
+            // ESP_LOGE(TAG, "no data received.");
         }
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);  
