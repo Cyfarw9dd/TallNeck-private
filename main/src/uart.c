@@ -50,13 +50,7 @@ void echo_task(void *pvParameter)
         int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1), 100 / portTICK_PERIOD_MS);
         if (len) 
         {
-            data[len] = '\0';  // 确保字符串结束
-            ESP_LOGI(TAG, "Received %d bytes: '%s'", len, data);
             if (strstr(data, "reconnect") != NULL)
-            {
-                // xTaskNotify(tle_download_handler, UPDATE_TLE, eSetValueWithOverwrite);
-            }
-            else if (strstr(data, "update tle") != NULL)
             {
                 xTaskNotify(tle_download_handler, UPDATE_TLE, eSetValueWithOverwrite);
             }
@@ -249,7 +243,6 @@ void echo_task(void *pvParameter)
             }
             else if (strstr(data, "help") != NULL)
             {
-                printf("update tle\tActivate the TLE data download function.\t\n");
                 printf("start tracking\tActivate the orbit tracking function.\t\n");
                 printf("end tracking\tDeactivate the orbit tracking function.\t\n");
                 printf("file info\tShowing the file information.\t\n");
@@ -261,12 +254,6 @@ void echo_task(void *pvParameter)
                 ESP_LOGW(TAG, "Try enter the 'help' for further information.\n");
             }
         }
-        else
-        {
-            // ESP_LOGE(TAG, "no data received.");
-        }
-
         vTaskDelay(1000 / portTICK_PERIOD_MS);  
-
     }
 }

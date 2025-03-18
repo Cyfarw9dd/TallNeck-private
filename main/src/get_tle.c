@@ -100,59 +100,45 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
     return ESP_OK;
 }
 
-void download_tle_task(void *pvParameters)
+void download_tle_task(void)
 {
-    while (1)
+    ESP_LOGI(TAG, "Downloading TLE data from URL");
+
+    esp_http_client_config_t config = 
     {
-        int status = NO_EVENT;
-        xTaskNotifyWait(0x00, 0xFFFFFFFF, &status, pdMS_TO_TICKS(portMAX_DELAY));
-        if (UPDATE_TLE == status)
-        {
-            status = NO_EVENT;
-            ESP_LOGI(TAG, "Downloading TLE data from URL");
+        .url = AMATEUR_URL,  // 页面URL
+        /**
+         * @brief   如果是普通的HTTP连接，那么是不需要配置证书的，而HTTPS需要
+         */
+        .cert_pem = NULL,  // 用于配置指定服务器的SSL证书，NULL代表使用默认证书
+        .skip_cert_common_name_check = true,  // 跳过证书通用名称的检查
+        .transport_type = HTTP_TRANSPORT_OVER_SSL,  // 确保客户端和服务器端的通信是加密的，指定使用SSL/TLS加密的HTTP连接
+        /**
+         * @brief   esp_crt_bundle_attach 是 ESP-IDF 提供的一个函数，它会加载一个包含多个受信任 CA 证书的捆绑包。
+         *          这样可以验证各种不同的服务器证书，而不需要单独指定每个证书。
+         */
+        .crt_bundle_attach = esp_crt_bundle_attach,  
+        .event_handler = _http_event_handler,  // 定义事件处理函数
+    };
+    
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    esp_http_client_set_method(client, HTTP_METHOD_GET);
+    esp_err_t err = esp_http_client_perform(client);
+    if (err == ESP_OK) 
+    {
+        ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %lld",
+                esp_http_client_get_status_code(client),
+                esp_http_client_get_content_length(client));
 
-            esp_http_client_config_t config = 
-            {
-                .url = AMATEUR_URL,  // 页面URL
-                /**
-                 * @brief   如果是普通的HTTP连接，那么是不需要配置证书的，而HTTPS需要
-                 */
-                .cert_pem = NULL,  // 用于配置指定服务器的SSL证书，NULL代表使用默认证书
-                .skip_cert_common_name_check = true,  // 跳过证书通用名称的检查
-                .transport_type = HTTP_TRANSPORT_OVER_SSL,  // 确保客户端和服务器端的通信是加密的，指定使用SSL/TLS加密的HTTP连接
-                /**
-                 * @brief   esp_crt_bundle_attach 是 ESP-IDF 提供的一个函数，它会加载一个包含多个受信任 CA 证书的捆绑包。
-                 *          这样可以验证各种不同的服务器证书，而不需要单独指定每个证书。
-                 */
-                .crt_bundle_attach = esp_crt_bundle_attach,  
-                .event_handler = _http_event_handler,  // 定义事件处理函数
-            };
-            
-            esp_http_client_handle_t client = esp_http_client_init(&config);
-            esp_http_client_set_method(client, HTTP_METHOD_GET);
-            esp_err_t err = esp_http_client_perform(client);
-            if (err == ESP_OK) 
-            {
-                ESP_LOGI(TAG, "HTTP GET Status = %d, content_length = %lld",
-                        esp_http_client_get_status_code(client),
-                        esp_http_client_get_content_length(client));
-
-                ESP_LOGI(TAG, "File checked successfully");
-            } 
-            else 
-            {
-                ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
-            }
-
-            esp_http_client_cleanup(client);
-            sync_latest_time();
-            get_file_info();  // 对下载的数据进行检验
-        }
-        else 
-        {
-            vTaskDelay(10 / portTICK_PERIOD_MS);
-        }
-
+        ESP_LOGI(TAG, "File checked successfully");
+    } 
+    else 
+    {
+        ESP_LOGE(TAG, "HTTP GET request failed: %s", esp_err_to_name(err));
     }
+
+    esp_http_client_cleanup(client);
+    sync_latest_time();
+    get_file_info();  // 对下载的数据进行检验
 }
 

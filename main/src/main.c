@@ -105,7 +105,7 @@ void cb_connection_ok(void *pvParameter)
 	ESP_LOGI(TAG, "I have a connection and my IP is %s!", str_ip);
     ESP_LOGI(TAG, "Using the keywords through the uart to activate certain function.\n");
     vTaskDelay(2000 / portTICK_PERIOD_MS);  // 延时一段事件再开启sntp同步
-    sntp_netif_sync_time();
+    download_tle_task();
 }
 
 void app_main(void)
@@ -139,13 +139,13 @@ void app_main(void)
 	wifi_manager_start();
     // 回调函数，用于返回IP 
 	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok);
-    lvgl_display_init();
+    // lvgl_display_init();
     // 旋转器控制任务，调用rmt生成精确波形，后期考虑移至ISR的回调函数中
-    xTaskCreatePinnedToCore(rotator_controller, "rotator_control", 4096, (void *)RotQueueHandler, 3, &stepper_motor_handler, 1);
+    // xTaskCreatePinnedToCore(rotator_controller, "rotator_control", 4096, (void *)RotQueueHandler, 3, &stepper_motor_handler, 1);
     // TCP server任务
-    xTaskCreatePinnedToCore(tcp_server_task, "tcp_server", 4096, (void *)RotQueueHandler, 5, &tcp_server_handler, 0);
+    // xTaskCreatePinnedToCore(tcp_server_task, "tcp_server", 4096, (void *)RotQueueHandler, 5, &tcp_server_handler, 0);
     // TLE下载任务，属于wifi协议栈，位于核心0
-    xTaskCreatePinnedToCore(download_tle_task, "download_tle", 8192, NULL, 7, &tle_download_handler, 0);
+    // xTaskCreatePinnedToCore(download_tle_task, "download_tle", 8192, NULL, 7, &tle_download_handler, 0);
     // sgp4sdp4轨道预测任务，位于核心1
     xTaskCreatePinnedToCore(orbit_trking_task, "orbit_trking", 8192, NULL, 5, &orbit_trking_handler, 1);
     // uart前台交互任务，高优先级，位于核心0
