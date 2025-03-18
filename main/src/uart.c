@@ -47,8 +47,6 @@ void echo_task(void *pvParameter)
     memset(data, 0, BUF_SIZE);
     while (1) 
     {
-        // NOTE: 串口bug排查
-        uart_write_bytes(ECHO_UART_PORT_NUM, (const char*)test_str, strlen(test_str));
         int len = uart_read_bytes(ECHO_UART_PORT_NUM, data, (BUF_SIZE - 1), 100 / portTICK_PERIOD_MS);
         if (len) 
         {
