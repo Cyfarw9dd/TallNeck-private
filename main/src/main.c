@@ -105,7 +105,7 @@ void cb_connection_ok(void *pvParameter)
 	ESP_LOGI(TAG, "I have a connection and my IP is %s!", str_ip);
     ESP_LOGI(TAG, "Using the keywords through the uart to activate certain function.\n");
     vTaskDelay(2000 / portTICK_PERIOD_MS);  // 延时一段事件再开启sntp同步
-    download_tle_task();
+    // download_tle_task();
 }
 
 void app_main(void)
@@ -116,7 +116,7 @@ void app_main(void)
     tzset();
     sntp_netif_sync_time_init();  // sntp时间同步初始化
 
-    // esp_err_t err = nvs_flash_erase();  // 用于擦除nvs部分
+    esp_err_t err = nvs_flash_erase();  // 用于擦除nvs部分
     LedTimerHandle = xTimerCreate("led_controller", NOTCONN_PERIOD, pdTRUE, 0, led_timer_callback);  // 创建LED定时器
     RotQueueHandler = xQueueCreate(5, sizeof(Tcp_Sentence *));  // 创建用于传输俯仰角数据的消息队列
     SatnameQueueHandler = xQueueCreate(5, SAT_NMAE_LENGTH);
