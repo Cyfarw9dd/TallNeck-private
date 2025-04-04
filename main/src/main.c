@@ -139,8 +139,6 @@ void app_main(void)
 	wifi_manager_start();
     // 回调函数，用于返回IP 
 	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok);
-    // 等待WiFi初始化完成
-    vTaskDelay(2000 / portTICK_PERIOD_MS);
     // 旋转器控制任务，调用rmt生成精确波形，后期考虑移至ISR的回调函数中
     // xTaskCreatePinnedToCore(rotator_controller, "rotator_control", 4096, (void *)RotQueueHandler, 3, &stepper_motor_handler, 1);
     // TCP server任务
