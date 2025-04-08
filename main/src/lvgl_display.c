@@ -137,26 +137,53 @@ void example_lvgl_update_cb(lv_disp_drv_t *drv)
 #if EXAMPLE_USE_TOUCH
 void example_lvgl_touch_cb(lv_indev_drv_t *drv, lv_indev_data_t *data)
 {
+    static uint16_t last_x = 0;
+    static uint16_t last_y = 0;
+    static bool last_pressed = false;
+    static uint8_t retry_count = 0;
+    const uint8_t max_retries = 3;
+
     esp_lcd_touch_handle_t tp = (esp_lcd_touch_handle_t)drv->user_data;
     assert(tp);
 
     uint16_t tp_x;
     uint16_t tp_y;
     uint8_t tp_cnt = 0;
-    /* Read data from touch controller into memory */
-    esp_lcd_touch_read_data(tp);
-    /* Read data from touch controller */
+    bool read_success = false;
+
+    // 添加重试机制
+    for (retry_count = 0; retry_count < max_retries; retry_count++) {
+        if (esp_lcd_touch_read_data(tp) == ESP_OK) {
+            read_success = true;
+            break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(5)); // 短暂延时后重试
+    }
+
+    if (!read_success) {
+        // 如果读取失败，使用上一次的有效数据
+        data->point.x = last_x;
+        data->point.y = last_y;
+        data->state = last_pressed ? LV_INDEV_STATE_PRESSED : LV_INDEV_STATE_RELEASED;
+        return;
+    }
+
     bool tp_pressed = esp_lcd_touch_get_coordinates(tp, &tp_x, &tp_y, NULL, &tp_cnt, 1);
     if (tp_pressed && tp_cnt > 0) 
     {
-        data->point.x = tp_x ;
-        data->point.y = tp_y ;
+        data->point.x = tp_x;
+        data->point.y = tp_y;
         data->state = LV_INDEV_STATE_PRESSED;
+        // 保存当前的有效数据
+        last_x = tp_x;
+        last_y = tp_y;
+        last_pressed = true;
         ESP_LOGD(TAG, "Touch position: %d,%d", tp_x, tp_y);
     } 
     else 
     {
         data->state = LV_INDEV_STATE_RELEASED;
+        last_pressed = false;
     }
 }
 #endif
@@ -271,7 +298,7 @@ void lvgl_display_init(void)
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_io_num = EXAMPLE_PIN_NUM_TOUCH_SCL,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = 200 * 1000,
+        .master.clk_speed = 50000,  // 降低到50kHz以提高稳定性
     };
     ESP_ERROR_CHECK(i2c_param_config(TOUCH_HOST, &i2c_conf));
     ESP_ERROR_CHECK(i2c_driver_install(TOUCH_HOST, i2c_conf.mode, 0, 0, 0));
