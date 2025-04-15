@@ -39,7 +39,7 @@
 #define ISS_URL                 "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle"
 #define AMATEUR_URL             "https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle"
 
-#define FLASH_FILE_PATH         "/littlefs/flash_data.txt"  // 从本地编辑文件并烧录  
+#define FLASH_FILE_PATH         "/littlefs/tle_eph.txt"  // 从本地编辑文件并烧录  
 #define FILE_PATH               "/littlefs/tle_data.txt"  // 通过下载功能下载文件，推荐一周更新一次
 #define LATEST_TIME_PATH        "/littlefs/latest_time.txt"  // 保存着上次下载数据的更新时间
 #define WIFI_CONNECTED_BIT      BIT0

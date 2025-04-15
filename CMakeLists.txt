@@ -8,3 +8,6 @@ set(EXTRA_COMPONENT_DIRS $ENV{IDF_PATH}/examples/common_components/protocol_exam
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(TallNeck)
+
+# 添加以下行来生成并烧录LittleFS镜像
+littlefs_create_partition_image(storage littlefsflash FLASH_IN_PROJECT)

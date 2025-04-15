@@ -30,7 +30,7 @@ logger = logging.getLogger("TLE_Updater")
 
 # Constants
 TLE_URL = "https://celestrak.org/NORAD/elements/gp.php?GROUP=amateur&FORMAT=tle"
-OUTPUT_FILE = "littlefsflash/tle_eph"
+OUTPUT_FILE = "littlefsflash/tle_eph.txt"
 UPDATE_INTERVAL_HOURS = 48
 
 def download_tle():
@@ -51,10 +51,6 @@ def download_tle():
         with open(OUTPUT_FILE, 'w') as f:
             f.write(response.text)
             f.write(f"\n\n{current_time}\n")
-        
-        # Log the timestamp of the update
-        with open("littlefsflash/latest_update.txt", 'w') as f:
-            f.write(current_time)
         
         logger.info(f"TLE data successfully saved to {OUTPUT_FILE}")
         return True
