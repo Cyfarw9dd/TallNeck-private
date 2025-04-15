@@ -1,0 +1,14 @@
+[Unit]
+Description=TLE Data Update Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/TallNeck
+ExecStart=/usr/bin/python3 /root/TallNeck/update_tle.py
+Restart=always
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target 
