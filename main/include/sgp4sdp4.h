@@ -180,6 +180,9 @@ typedef enum
 #define REACH_END_OF_FILE	   -2
 #define TLE_DATA_ERROR		   -3	
 
+extern float latitude;
+extern float longitude;
+
 // 跟踪线程
 void orbit_trking_task(void);
 /* Funtion prototypes produced by cproto */

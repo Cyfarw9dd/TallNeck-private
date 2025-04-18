@@ -116,7 +116,7 @@ void get_file_info(void)
     while (fgets(buffer, sizeof(buffer), tle) != NULL) {
         printf("%s", buffer);
     }
-
+    printf("当前经纬度：%f, %f\n", latitude, longitude);
     fclose(tle);
 }
 

@@ -15,6 +15,8 @@
 #define TAG 		"orbit_trking"
 
 FILE *tle_fp;
+float latitude;
+float longitude;
 
 void orbit_trking_task(void)
 {

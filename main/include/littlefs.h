@@ -12,6 +12,7 @@
 
 #include "get_tle.h"
 #include "globals.h"
+#include "sgp4sdp4.h"
 
 extern esp_vfs_littlefs_conf_t littlefs_conf;
 
