@@ -23,14 +23,14 @@ void orbit_trking_task(void)
 	BaseType_t sat_queue_rxstatus;
 	BaseType_t task_notify_status;
 	/* TLE source file */
-	char tle_file[] = FILE_PATH;
+	char tle_file[] = FLASH_FILE_PATH;
 
 	/* Observer's geodetic co-ordinates.      */
 	/* Lat North, Lon East in rads, Alt in km */
 	
 	// 深圳经纬度: 22.3349, 114.1036
 	// 哈尔滨经纬度：45.4915, 126.3848
-	geodetic_t obs_geodetic = {22.5473 * pi / 180.0, 114.0808 * pi / 180.0, 0.15, 0.0};
+	geodetic_t obs_geodetic = {22.3349 * pi / 180.0, 114.1036 * pi / 180.0, 0.15, 0.0};
 
 	/* Two-line Orbital Elements for the satellite */
 	tle_t tle ;

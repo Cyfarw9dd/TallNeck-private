@@ -116,7 +116,7 @@ void app_main(void)
     tzset();
     sntp_netif_sync_time_init();  // sntp时间同步初始化
 
-    esp_err_t err = nvs_flash_erase();  // 用于擦除nvs部分
+    // esp_err_t err = nvs_flash_erase();  // 用于擦除nvs部分
     LedTimerHandle = xTimerCreate("led_controller", NOTCONN_PERIOD, pdTRUE, 0, led_timer_callback);  // 创建LED定时器
     RotQueueHandler = xQueueCreate(5, sizeof(Tcp_Sentence *));  // 创建用于传输俯仰角数据的消息队列
     SatnameQueueHandler = xQueueCreate(5, SAT_NMAE_LENGTH);
@@ -151,6 +151,6 @@ void app_main(void)
     xTaskCreatePinnedToCore(echo_task, "uart_echo", 8192, NULL, 10, &uart_handler, 0);
     // gui任务，高优先级，位于核心1，如果处于核心0，会导致堆栈溢出
     lvgl_display_init();
-    xTaskCreatePinnedToCore(gui_task, "gui_task", 8192, NULL, 9, &gui_handler, 1);
+    // xTaskCreatePinnedToCore(gui_task, "gui_task", 8192, NULL, 9, &gui_handler, 1);
     LedStatus = NOTCONNECTED;
 }
