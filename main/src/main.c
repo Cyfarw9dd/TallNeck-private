@@ -151,6 +151,6 @@ void app_main(void)
     xTaskCreatePinnedToCore(echo_task, "uart_echo", 8192, NULL, 10, &uart_handler, 0);
     // gui任务，高优先级，位于核心1，如果处于核心0，会导致堆栈溢出
     lvgl_display_init();
-    // xTaskCreatePinnedToCore(gui_task, "gui_task", 8192, NULL, 9, &gui_handler, 1);
+    xTaskCreatePinnedToCore(gui_task, "gui_task", 8192, NULL, 9, &gui_handler, 1);
     LedStatus = NOTCONNECTED;
 }
