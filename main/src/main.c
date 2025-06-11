@@ -66,7 +66,8 @@ TaskHandle_t stepper_motor_handler;
 TaskHandle_t uart_handler;
 TaskHandle_t gui_handler;
 
-QueueHandle_t SatnameQueueHandler;
+QueueHandle_t SatnameQueueHandler = NULL;
+QueueHandle_t SatelliteParamsQueueHandler = NULL;
 
 static void Led_Init(void)
 {
@@ -120,7 +121,7 @@ void app_main(void)
     LedTimerHandle = xTimerCreate("led_controller", NOTCONN_PERIOD, pdTRUE, 0, led_timer_callback);  // 创建LED定时器
     RotQueueHandler = xQueueCreate(5, sizeof(Tcp_Sentence *));  // 创建用于传输俯仰角数据的消息队列
     SatnameQueueHandler = xQueueCreate(5, SAT_NMAE_LENGTH);
-
+    SatelliteParamsQueueHandler = xQueueCreate(1, sizeof(satellite_params_t));
     // 检查定时器和消息队列是否创建完成
     if (NULL == RotQueueHandler)
     {
@@ -134,11 +135,14 @@ void app_main(void)
     {
         LedTimerStarted = xTimerStart(LedTimerHandle, 0);  // 启动LED定时器
     }
+    if (SatelliteParamsQueueHandler == NULL) {
+        ESP_LOGE("QUEUE", "Failed to create satellite parameters queue");
+    }
 
     // wifi manager IP address: 10.10.0.1
-	wifi_manager_start();
+	// wifi_manager_start();
     // 回调函数，用于返回IP 
-	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok);
+	// wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok);
     // 旋转器控制任务，调用rmt生成精确波形，后期考虑移至ISR的回调函数中
     // xTaskCreatePinnedToCore(rotator_controller, "rotator_control", 4096, (void *)RotQueueHandler, 3, &stepper_motor_handler, 1);
     // TCP server任务

@@ -84,4 +84,10 @@ void lvgl_running_example(void);
 
 void lvgl_display_init(void);
 
+static void update_sat_param_gui_cb(void *param);
+
+void check_satellite_params(void);
+
+void update_sat_param_on_screen_load(void);
+
 void gui_task(void);

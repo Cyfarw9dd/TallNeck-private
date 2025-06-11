@@ -23,6 +23,7 @@
 #include "esp_log.h"
 
 #include "get_tle.h"
+#include "globals.h"
 
 /** Type definitions **/
 

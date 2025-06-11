@@ -382,6 +382,58 @@ void lvgl_display_init(void)
     lvgl_running_example();
 }
 
+
+// 当前卫星参数的缓存
+static satellite_params_t current_sat_params;
+static bool has_sat_params = false;
+
+// 异步更新卫星参数的回调函数
+static void update_sat_param_gui_cb(void *param) {
+    satellite_params_t *params = (satellite_params_t *)param;
+    
+    if (guider_ui.sat_param_screen == NULL) {
+        // 如果屏幕未创建，不需要更新
+        return;
+    }
+    
+    // 更新界面显示
+    update_sat_param_screen(
+        &guider_ui,
+        params->sat_name,
+        params->sat_ele,
+        params->sat_azi,
+        params->sat_range,
+        params->sat_vel,
+        params->sat_status
+    );
+}
+
+// 检查队列中是否有新的卫星参数数据
+void check_satellite_params(void) {
+    satellite_params_t params;
+    
+    if (SatelliteParamsQueueHandler != NULL) {
+        // 尝试接收队列数据，不阻塞
+        if (xQueueReceive(SatelliteParamsQueueHandler, &params, 0) == pdPASS) {
+            // 复制到当前参数缓存
+            memcpy(&current_sat_params, &params, sizeof(satellite_params_t));
+            has_sat_params = true;
+            
+            // 如果当前显示的是卫星参数界面，则更新
+            if (lv_scr_act() == guider_ui.sat_param_screen) {
+                lv_async_call(update_sat_param_gui_cb, &current_sat_params);
+            }
+        }
+    }
+}
+
+// 当切换到卫星参数屏幕时，使用缓存的参数更新界面
+void update_sat_param_on_screen_load(void) {
+    if (has_sat_params) {
+        lv_async_call(update_sat_param_gui_cb, &current_sat_params);
+    }
+}
+
 void gui_task(void)
 {
     ESP_LOGI(TAG, "Starting LVGL task");
@@ -394,6 +446,9 @@ void gui_task(void)
         // Lock the mutex due to the LVGL APIs are not thread-safe
         if (example_lvgl_lock(-1)) 
         {
+            // 检查卫星参数更新
+            check_satellite_params();
+            
             task_delay_ms = lv_timer_handler();
             // Release the mutex
             example_lvgl_unlock();

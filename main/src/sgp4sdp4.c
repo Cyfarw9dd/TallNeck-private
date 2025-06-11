@@ -30,7 +30,7 @@ void orbit_trking_task(void)
 	
 	// 深圳经纬度: 22.3349, 114.1036
 	// 哈尔滨经纬度：45.4915, 126.3848
-	geodetic_t obs_geodetic = {22.3349 * pi / 180.0, 114.1036 * pi / 180.0, 0.15, 0.0};
+	geodetic_t obs_geodetic = {45.4915 * pi / 180.0, 126.3848 * pi / 180.0, 0.15, 0.0};
 
 	/* Two-line Orbital Elements for the satellite */
 	tle_t tle ;
@@ -233,6 +233,35 @@ void orbit_trking_task(void)
 						sat_status, eclipse_depth,
 						sun_azi, sun_ele);
 					 */
+					// 在轨道跟踪任务循环中，计算完卫星参数后
+					satellite_params_t params;
+
+					// 复制计算的参数到结构体
+					strncpy(params.sat_name, tle.sat_name, sizeof(params.sat_name) - 1);
+					params.sat_name[sizeof(params.sat_name) - 1] = '\0';  // 确保字符串结束
+
+					params.sat_azi = sat_azi;
+					params.sat_ele = sat_ele;
+					params.sat_range = sat_range;
+					params.sat_range_rate = sat_range_rate;
+					params.sat_lat = sat_lat;
+					params.sat_lon = sat_lon;
+					params.sat_alt = sat_alt;
+					params.sat_vel = sat_vel;
+					strncpy(params.sat_status, sat_status, sizeof(params.sat_status) - 1);
+					params.sat_status[sizeof(params.sat_status) - 1] = '\0';
+					params.eclipse_depth = eclipse_depth;
+					memcpy(&params.utc, &utc, sizeof(struct tm));
+					strncpy(params.ephem, ephem, sizeof(params.ephem) - 1);
+					params.ephem[sizeof(params.ephem) - 1] = '\0';
+
+					// 发送到队列，覆写之前的值
+					if (SatelliteParamsQueueHandler != NULL) {
+						// 使用xQueueOverwrite确保队列中始终有最新的参数
+						if (xQueueOverwrite(SatelliteParamsQueueHandler, &params) != pdPASS) {
+							ESP_LOGW(TAG, "Failed to send satellite parameters to queue");
+						}
+					}
 
 					vTaskDelay(2000 / portTICK_PERIOD_MS);
 				}
