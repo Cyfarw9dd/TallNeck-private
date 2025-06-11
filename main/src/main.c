@@ -109,12 +109,67 @@ void cb_connection_ok(void *pvParameter)
     // download_tle_task();
 }
 
+void init_time_from_compile(void)
+{
+    // 使用编译器预定义的日期和时间宏
+    const char *compile_date = __DATE__;   // 格式如："Jun 11 2025"
+    const char *compile_time = __TIME__;   // 格式如："11:59:30"
+    
+    char month_str[4];
+    int month, day, year, hour, minute, second;
+    
+    // 解析日期字符串 "Jun 11 2025"
+    sscanf(compile_date, "%s %d %d", month_str, &day, &year);
+    
+    // 解析时间字符串 "11:59:30"
+    sscanf(compile_time, "%d:%d:%d", &hour, &minute, &second);
+    
+    // 将月份转换为数字(0-11)
+    const char *months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    month = 0;
+    for (int i = 0; i < 12; i++) {
+        if (strncmp(month_str, months[i], 3) == 0) {
+            month = i;
+            break;
+        }
+    }
+    
+    // 构建tm结构
+    struct tm timeinfo = {
+        .tm_year = year - 1900,
+        .tm_mon = month,
+        .tm_mday = day,
+        .tm_hour = hour,
+        .tm_min = minute,
+        .tm_sec = second
+    };
+    
+    time_t t = mktime(&timeinfo);
+    struct timeval now = {
+        .tv_sec = t,
+        .tv_usec = 0
+    };
+    
+    // 设置系统时间
+    settimeofday(&now, NULL);
+    
+    // 设置时区
+    setenv("TZ", "CST-8", 1);
+    tzset();
+    
+    // 记录设置的时间
+    char strftime_buf[64];
+    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
+    ESP_LOGI(TAG, "系统时间已初始化为编译时间: %s", strftime_buf);
+}
+
 void app_main(void)
 {
     Led_Init();  // LED初始化
     littlefs_init(&littlefs_conf);  // LittleFS文件系统初始化
     setenv("TZ", "CST-8", 1);  // 将时区设置为中国标准时间
     tzset();
+    init_time_from_compile();
     sntp_netif_sync_time_init();  // sntp时间同步初始化
 
     // esp_err_t err = nvs_flash_erase();  // 用于擦除nvs部分
